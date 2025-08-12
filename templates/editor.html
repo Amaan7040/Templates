@@ -1,0 +1,888 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Template Editor - {{ template_id }}</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    :root {
+      --primary: #0ea5e9;
+      --primary-dark: #0284c7;
+      --danger: #ef4444;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --gray-100: #f8fafc;
+      --gray-200: #f1f5f9;
+      --gray-300: #e2e8f0;
+      --gray-500: #64748b;
+      --gray-700: #334155;
+      --gray-900: #0f172a;
+    }
+    
+    * {
+      box-sizing: border-box;
+    }
+    
+    body { 
+      margin:0; 
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif; 
+      background:#f8fafc; 
+      color: var(--gray-900);
+      height: 100vh;
+      overflow: hidden;
+    }
+    
+    .topbar { 
+      height:70px; 
+      background: linear-gradient(90deg, var(--gray-900) 0%, #1e293b 100%); 
+      color:white; 
+      display:flex; 
+      align-items:center; 
+      gap:16px; 
+      padding:0 24px; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      position: relative;
+      z-index: 100;
+    }
+    
+    .container { 
+      display:flex; 
+      height:calc(100vh - 70px); 
+      gap:16px; 
+      padding:16px; 
+      background: var(--gray-200);
+      overflow: hidden;
+    }
+    
+    .left, .right { 
+      background:white; 
+      border-radius:12px; 
+      padding:20px; 
+      overflow:auto; 
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      width: 300px;
+      display: flex;
+      flex-direction: column;
+    }
+    
+    .canvas-wrap { 
+      flex:1; 
+      display:flex; 
+      justify-content:center; 
+      align-items:center; 
+      overflow: auto;
+      padding: 20px 0;
+      background: var(--gray-300);
+      border-radius: 12px;
+    }
+    
+    button, .btn { 
+      background: var(--primary); 
+      border:none; 
+      color:white; 
+      padding:10px 16px; 
+      border-radius:8px; 
+      cursor:pointer; 
+      font-weight:600;
+      font-size:14px;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    button:hover, .btn:hover {
+      background: var(--primary-dark);
+      transform: translateY(-1px);
+    }
+    
+    .btn-ghost { 
+      background:transparent; 
+      color: var(--gray-900); 
+      border:1px solid var(--gray-300); 
+      padding:8px 12px; 
+      margin: 4px 0;
+      font-weight:500;
+    }
+    
+    .btn-ghost:hover {
+      background: var(--gray-200);
+      transform: none;
+    }
+    
+    .btn-danger {
+      background: var(--danger);
+    }
+    
+    .btn-danger:hover {
+      background: #dc2626;
+    }
+    
+    .tool { 
+      margin-bottom:20px; 
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--gray-200);
+    }
+    
+    .tool:last-child {
+      border-bottom: none;
+    }
+    
+    .element-list { 
+      margin-top:12px; 
+      flex: 1;
+      overflow-y: auto;
+    }
+    
+    .element-row { 
+      padding:12px; 
+      border-radius:8px; 
+      background: var(--gray-100); 
+      margin-bottom:8px; 
+      display:flex; 
+      justify-content:space-between; 
+      align-items:center;
+      border: 1px solid var(--gray-300);
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+    
+    .element-row:hover, .element-row.active {
+      background: #e0f2fe;
+      border-color: #bae6fd;
+    }
+    
+    label { 
+      display:block; 
+      margin-top:12px; 
+      font-size:14px; 
+      color: var(--gray-700);
+      font-weight: 500;
+    }
+    
+    input[type="color"] { 
+      width:100%; 
+      height:40px; 
+      border:1px solid var(--gray-300); 
+      border-radius:8px;
+      padding: 2px;
+      cursor: pointer;
+    }
+    
+    input[type="file"] { 
+      display:block; 
+      margin-top:12px; 
+      width:100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--gray-300);
+      background: var(--gray-100);
+    }
+    
+    .canvas-frame { 
+      box-shadow: 0 10px 25px rgba(2,6,23,0.15); 
+      border-radius:12px; 
+      background:white; 
+      padding:10px; 
+      display: inline-block;
+    }
+    
+    .section-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--gray-900);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .section-title::before {
+      content: "";
+      display: block;
+      width: 4px;
+      height: 18px;
+      background: var(--primary);
+      border-radius: 2px;
+    }
+    
+    .btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    
+    .btn-group button {
+      flex: 1;
+    }
+    
+    .prop-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .history-controls {
+      display: flex;
+      gap: 8px;
+      justify-content: space-between;
+    }
+    
+    .text-controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+    
+    .font-select {
+      width: 100%;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid var(--gray-300);
+      background: var(--gray-100);
+    }
+    
+    .element-icon {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--gray-200);
+      border-radius: 4px;
+    }
+    
+    .zoom-controls {
+      position: absolute;
+      bottom: 30px;
+      right: 30px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      background: white;
+      padding: 10px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      z-index: 50;
+    }
+    
+    .zoom-btn {
+      width: 36px;
+      height: 36px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      cursor: pointer;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div style="font-weight:800; font-size:20px; display:flex; align-items:center; gap:8px">
+      <i class="fas fa-paint-brush"></i>
+      <span>Design Editor</span>
+    </div>
+    <div style="margin-left:10px; color:#94a3b8; font-size:14px">Template: {{ template_id }}</div>
+    <div style="margin-left:auto; display:flex; gap:12px;">
+      <button id="btnSave" style="background: var(--success);">
+        <i class="fas fa-save"></i> Save Design
+      </button>
+      <button id="btnExport" style="background: #8b5cf6;">
+        <i class="fas fa-download"></i> Export PNG
+      </button>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="left">
+      <div class="tool">
+        <div class="section-title">Add Elements</div>
+        <div class="btn-group">
+          <button id="addText" class="btn-ghost">
+            <i class="fas fa-font"></i> Text
+          </button>
+          <button id="addRect" class="btn-ghost">
+            <i class="fas fa-square"></i> Shape
+          </button>
+        </div>
+        <label>Upload Image</label>
+        <input id="imgUpload" type="file" accept="image/*"/>
+        <small style="display:block; margin-top:8px; color:#64748b">Select an image frame first for best results</small>
+      </div>
+
+      <div class="tool">
+        <div class="section-title">Elements</div>
+        <div id="elements" class="element-list"></div>
+      </div>
+    </div>
+
+    <div class="canvas-wrap">
+      <div class="canvas-frame">
+        <canvas id="c"></canvas>
+      </div>
+      <div class="zoom-controls">
+        <div class="zoom-btn" id="zoomIn">
+          <i class="fas fa-plus"></i>
+        </div>
+        <div class="zoom-btn" id="zoomOut">
+          <i class="fas fa-minus"></i>
+        </div>
+        <div class="zoom-btn" id="zoomReset">
+          <i class="fas fa-sync"></i>
+        </div>
+      </div>
+    </div>
+
+    <div class="right">
+      <div class="tool">
+        <div class="section-title">Properties</div>
+        <div id="props">
+          <div style="padding:12px; background:var(--gray-100); border-radius:8px; color:#64748b; text-align:center">
+            <em>Select an element to edit properties</em>
+          </div>
+        </div>
+      </div>
+
+      <div class="tool">
+        <div class="section-title">Arrange</div>
+        <div class="btn-group">
+          <button id="bringForward" class="btn-ghost">
+            <i class="fas fa-arrow-up"></i> Forward
+          </button>
+          <button id="sendBack" class="btn-ghost">
+            <i class="fas fa-arrow-down"></i> Backward
+          </button>
+        </div>
+        <div class="btn-group" style="margin-top:8px">
+          <button id="bringToFront" class="btn-ghost">
+            <i class="fas fa-level-up-alt"></i> To Front
+          </button>
+          <button id="sendToBack" class="btn-ghost">
+            <i class="fas fa-level-down-alt"></i> To Back
+          </button>
+        </div>
+        <button id="deleteObj" class="btn-ghost" style="margin-top:8px; color:var(--danger); border-color:#fecaca">
+          <i class="fas fa-trash"></i> Delete Element
+        </button>
+      </div>
+
+      <div class="tool">
+        <div class="section-title">History</div>
+        <div class="history-controls">
+          <button id="undo" class="btn-ghost">
+            <i class="fas fa-undo"></i> Undo
+          </button>
+          <button id="redo" class="btn-ghost">
+            <i class="fas fa-redo"></i> Redo
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fabric.js CDN -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.2.4/fabric.min.js"></script>
+  <!-- html2canvas for PNG fallback -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <script>
+    const templateId = "{{ template_id }}";
+    const templateImageUrl = "{{ image_url }}";
+    const templateWidth = {{ width }}; 
+    const templateHeight = {{ height }};
+    
+    let canvas;
+    const undoStack = [], redoStack = [];
+    let currentScale = 1.0;
+    const minScale = 0.3;
+    const maxScale = 2.0;
+    const scaleStep = 0.1;
+
+    function pushState() {
+      try {
+        undoStack.push(JSON.stringify(canvas.toJSON(['selectable'])));
+        if (undoStack.length > 50) undoStack.shift();
+        redoStack.length = 0;
+      } catch(e){ console.warn(e) }
+    }
+    
+    function applyState(state) {
+      canvas.loadFromJSON(state, () => {
+        canvas.renderAll();
+        refreshElementsPanel();
+      });
+    }
+
+    function setupCanvas(width, height) {
+      const c = document.getElementById('c');
+      c.width = width;
+      c.height = height;
+      canvas = new fabric.Canvas('c', {
+        preserveObjectStacking: true
+      });
+      
+      // Set initial zoom
+      updateCanvasZoom();
+      
+      // Event listeners
+      canvas.on('object:modified', () => { pushState(); refreshElementsPanel(); });
+      canvas.on('object:added', () => { pushState(); refreshElementsPanel(); });
+      canvas.on('selection:created', showPropsForActive);
+      canvas.on('selection:updated', showPropsForActive);
+      canvas.on('selection:cleared', clearProps);
+      
+      // Enable multi-key commands
+      document.addEventListener('keydown', handleKeyDown);
+    }
+    
+    function handleKeyDown(e) {
+      // Delete key
+      if (e.key === 'Delete') {
+        const a = canvas.getActiveObject(); 
+        if (a) {
+          canvas.remove(a); 
+          canvas.discardActiveObject(); 
+          pushState(); 
+          refreshElementsPanel();
+        }
+      }
+      
+      // Undo/Redo with Ctrl
+      if (e.ctrlKey) {
+        if (e.key === 'z') {
+          e.preventDefault();
+          document.getElementById('undo').click();
+        } else if (e.key === 'y') {
+          e.preventDefault();
+          document.getElementById('redo').click();
+        }
+      }
+    }
+    
+    function updateCanvasZoom() {
+      canvas.setZoom(currentScale);
+      canvas.renderAll();
+    }
+
+    function addBackgroundImage() {
+      fabric.Image.fromURL(templateImageUrl, function(img) {
+        img.set({
+          left: 0,
+          top: 0,
+          width: templateWidth,
+          height: templateHeight,
+          selectable: false,
+          evented: false,
+          lockMovementX: true,
+          lockMovementY: true,
+          lockRotation: true,
+          lockScalingX: true,
+          lockScalingY: true,
+          objectId: 'background'
+        });
+        canvas.add(img);
+        canvas.sendToBack(img);
+        pushState();
+        refreshElementsPanel();
+      }, { crossOrigin: 'anonymous' });
+    }
+
+    function refreshElementsPanel() {
+      const elDiv = document.getElementById('elements');
+      elDiv.innerHTML = '';
+      
+      // Skip background element
+      const objs = canvas.getObjects().filter(obj => obj.objectId !== 'background').slice().reverse();
+      
+      objs.forEach(o => {
+        const row = document.createElement('div');
+        row.className = 'element-row';
+        if (o === canvas.getActiveObject()) row.classList.add('active');
+        
+        // Determine icon based on type
+        let icon = 'fa-object-group';
+        if (o.type === 'textbox') icon = 'fa-font';
+        else if (o.type === 'rect') icon = 'fa-square';
+        else if (o.type === 'image') icon = 'fa-image';
+        
+        row.innerHTML = `
+          <div style="display:flex; align-items:center; gap:8px">
+            <div class="element-icon"><i class="fas ${icon}"></i></div>
+            <div style="font-size:13px">${o.objectId || o.type}</div>
+          </div>
+          <button class="btn-ghost" data-id="${o.objectId}">
+            <i class="fas fa-mouse-pointer"></i>
+          </button>
+        `;
+        elDiv.appendChild(row);
+        
+        // Click handler for entire row
+        row.addEventListener('click', () => {
+          canvas.setActiveObject(o);
+          canvas.requestRenderAll();
+          showPropsForActive();
+        });
+      });
+    }
+
+    function showPropsForActive() {
+      const a = canvas.getActiveObject();
+      const box = document.getElementById('props');
+      if (!a || a.objectId === 'background') { 
+        clearProps();
+        return; 
+      }
+      
+      // Highlight active element in panel
+      document.querySelectorAll('.element-row').forEach(row => {
+        row.classList.remove('active');
+      });
+      const activeRow = document.querySelector(`.element-row button[data-id="${a.objectId}"]`);
+      if (activeRow) {
+        activeRow.closest('.element-row').classList.add('active');
+      }
+      
+      let html = `<label>Type: ${a.type}</label>`;
+      
+      if (a.type === 'textbox' || a.type === 'text') {
+        html += `
+          <label>Text Content</label>
+          <textarea id="prop_text" style="width:100%;height:80px; padding:8px; border-radius:8px; border:1px solid #e2e8f0">${a.text}</textarea>
+          
+          <div class="prop-grid" style="margin-top:12px">
+            <div>
+              <label>Font size</label>
+              <input id="prop_fontsize" type="number" value="${a.fontSize}" style="width:100%; padding:8px; border-radius:8px; border:1px solid #e2e8f0" />
+            </div>
+            <div>
+              <label>Line Height</label>
+              <input id="prop_lineheight" type="number" value="${a.lineHeight || 1}" step="0.1" style="width:100%; padding:8px; border-radius:8px; border:1px solid #e2e8f0" />
+            </div>
+          </div>
+          
+          <label>Font Family</label>
+          <select id="prop_font" class="font-select">
+            <option value="Arial" ${a.fontFamily === 'Arial' ? 'selected' : ''}>Arial</option>
+            <option value="Poppins" ${a.fontFamily === 'Poppins' ? 'selected' : ''}>Poppins</option>
+            <option value="Georgia" ${a.fontFamily === 'Georgia' ? 'selected' : ''}>Georgia</option>
+            <option value="Times New Roman" ${a.fontFamily === 'Times New Roman' ? 'selected' : ''}>Times New Roman</option>
+            <option value="Verdana" ${a.fontFamily === 'Verdana' ? 'selected' : ''}>Verdana</option>
+          </select>
+          
+          <div class="prop-grid" style="margin-top:12px">
+            <div>
+              <label>Text Color</label>
+              <input id="prop_color" type="color" value="${rgbToHex(a.fill || '#000000')}"/>
+            </div>
+            <div>
+              <label>Background</label>
+              <input id="prop_bg" type="color" value="${a.backgroundColor ? rgbToHex(a.backgroundColor) : '#ffffff'}" />
+            </div>
+          </div>
+          
+          <div style="margin-top:12px">
+            <label>Text Alignment</label>
+            <div class="btn-group">
+              <button id="alignLeft" class="btn-ghost" style="${a.textAlign === 'left' ? 'background:#dbeafe' : ''}"><i class="fas fa-align-left"></i></button>
+              <button id="alignCenter" class="btn-ghost" style="${a.textAlign === 'center' ? 'background:#dbeafe' : ''}"><i class="fas fa-align-center"></i></button>
+              <button id="alignRight" class="btn-ghost" style="${a.textAlign === 'right' ? 'background:#dbeafe' : ''}"><i class="fas fa-align-right"></i></button>
+            </div>
+          </div>
+        `;
+      } else if (a.type === 'rect' || a.type === 'group') {
+        html += `
+          <div class="prop-grid">
+            <div>
+              <label>Fill Color</label>
+              <input id="prop_fill" type="color" value="${rgbToHex(a.fill || '#0ea5e9')}" />
+            </div>
+            <div>
+              <label>Opacity</label>
+              <input id="prop_opacity" type="range" min="0" max="1" step="0.01" value="${a.opacity ?? 1}"/>
+            </div>
+          </div>
+          
+          <div class="prop-grid" style="margin-top:12px">
+            <div>
+              <label>Border Color</label>
+              <input id="prop_stroke" type="color" value="${a.stroke ? rgbToHex(a.stroke) : '#000000'}" />
+            </div>
+            <div>
+              <label>Border Width</label>
+              <input id="prop_strokewidth" type="number" value="${a.strokeWidth || 0}" min="0" max="20" />
+            </div>
+          </div>
+        `;
+      } else if (a.type === 'image') {
+        html += `
+          <div class="prop-grid">
+            <div>
+              <label>Opacity</label>
+              <input id="prop_opacity" type="range" min="0" max="1" step="0.01" value="${a.opacity ?? 1}"/>
+            </div>
+            <div>
+              <label>Rotation</label>
+              <input id="prop_rot" type="number" value="${a.angle ?? 0}"/>
+            </div>
+          </div>
+        `;
+      }
+      
+      html += `<div style="margin-top:16px"><button id="applyProps" class="btn">Apply Changes</button></div>`;
+      box.innerHTML = html;
+
+      // Text alignment handlers
+      if (a.type === 'textbox' || a.type === 'text') {
+        document.getElementById('alignLeft').addEventListener('click', () => {
+          a.textAlign = 'left';
+          canvas.requestRenderAll();
+        });
+        
+        document.getElementById('alignCenter').addEventListener('click', () => {
+          a.textAlign = 'center';
+          canvas.requestRenderAll();
+        });
+        
+        document.getElementById('alignRight').addEventListener('click', () => {
+          a.textAlign = 'right';
+          canvas.requestRenderAll();
+        });
+      }
+
+      // Apply properties handler
+      document.getElementById('applyProps').onclick = () => {
+        if (a.type === 'textbox' || a.type === 'text') {
+          const t = document.getElementById('prop_text').value;
+          const size = parseInt(document.getElementById('prop_fontsize').value || 18);
+          const color = document.getElementById('prop_color').value;
+          const bg = document.getElementById('prop_bg').value;
+          const font = document.getElementById('prop_font').value;
+          const lineHeight = parseFloat(document.getElementById('prop_lineheight').value || 1.2);
+          
+          a.text = t;
+          a.fontSize = size;
+          a.fill = color;
+          a.fontFamily = font;
+          a.lineHeight = lineHeight;
+          a.backgroundColor = bg === '#ffffff' ? '' : bg;
+        } else if (a.type === 'rect' || a.type === 'group') {
+          const fill = document.getElementById('prop_fill').value;
+          const op = parseFloat(document.getElementById('prop_opacity').value || 1);
+          const stroke = document.getElementById('prop_stroke').value;
+          const strokeWidth = parseInt(document.getElementById('prop_strokewidth').value || 0);
+          
+          a.fill = fill;
+          a.opacity = op;
+          a.stroke = stroke;
+          a.strokeWidth = strokeWidth;
+        } else if (a.type === 'image') {
+          const op = parseFloat(document.getElementById('prop_opacity').value || 1);
+          const rot = parseFloat(document.getElementById('prop_rot').value || 0);
+          
+          a.opacity = op;
+          a.angle = rot;
+        }
+        canvas.requestRenderAll();
+        pushState();
+        refreshElementsPanel();
+      }
+    }
+    
+    function clearProps() {
+      document.getElementById('props').innerHTML = `
+        <div style="padding:12px; background:#f8fafc; border-radius:8px; color:#64748b; text-align:center">
+          <em>Select an object to edit properties</em>
+        </div>
+      `;
+      // Remove active class from all elements
+      document.querySelectorAll('.element-row').forEach(row => {
+        row.classList.remove('active');
+      });
+    }
+
+    function rgbToHex(color) {
+      if (!color) return '#000000';
+      if (color.startsWith('#')) return color;
+      // fabric sometimes returns 'rgb(r,g,b)'
+      const m = color.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      if (m) {
+        return '#' + [1,2,3].map(i=>parseInt(m[i]).toString(16).padStart(2,'0')).join('');
+      }
+      return '#000000';
+    }
+
+    // UI actions
+    document.getElementById('imgUpload').addEventListener('change', (e)=>{
+      const f = e.target.files[0];
+      if (!f) return;
+      const reader = new FileReader();
+      reader.onload = function(evt){
+        const active = canvas.getActiveObject();
+        
+        // Add new image at center with default size
+        fabric.Image.fromURL(evt.target.result, function(img){
+          img.set({ 
+            left: canvas.width/2,
+            top: canvas.height/2,
+            scaleX: 0.3,
+            scaleY: 0.3,
+            originX: 'center',
+            originY: 'center',
+            objectId: `img_${Date.now()}` 
+          });
+          canvas.add(img);
+          canvas.setActiveObject(img);
+          pushState();
+          refreshElementsPanel();
+        }, { crossOrigin: 'anonymous' });
+      };
+      reader.readAsDataURL(f);
+    });
+    
+    document.getElementById('addText').addEventListener('click', ()=>{
+      const t = new fabric.Textbox("Edit this text", { 
+        left: canvas.width/2, 
+        top: canvas.height/2, 
+        fontSize: 36, 
+        fill:'#111827',
+        originX: 'center',
+        originY: 'center',
+        width: 300,
+        textAlign: 'center',
+        fontFamily: 'Poppins',
+        objectId: `txt_${Date.now()}`
+      });
+      canvas.add(t);
+      canvas.setActiveObject(t);
+      pushState();
+      refreshElementsPanel();
+    });
+
+    document.getElementById('addRect').addEventListener('click', ()=>{
+      const r = new fabric.Rect({ 
+        left: canvas.width/2 - 80, 
+        top: canvas.height/2 - 50, 
+        width:160, 
+        height:100, 
+        fill:'#0ea5e9',
+        originX: 'center',
+        originY: 'center',
+        objectId: `rect_${Date.now()}`
+      });
+      canvas.add(r);
+      canvas.setActiveObject(r);
+      pushState();
+      refreshElementsPanel();
+    });
+
+    // Arrange functions
+    document.getElementById('bringForward').addEventListener('click', ()=>{
+      const a = canvas.getActiveObject(); if (!a) return;
+      canvas.bringForward(a);
+      canvas.requestRenderAll(); pushState();
+    });
+    
+    document.getElementById('sendBack').addEventListener('click', ()=>{
+      const a = canvas.getActiveObject(); if (!a) return;
+      canvas.sendBackwards(a);
+      canvas.requestRenderAll(); pushState();
+    });
+    
+    document.getElementById('bringToFront').addEventListener('click', ()=>{
+      const a = canvas.getActiveObject(); if (!a) return;
+      canvas.bringToFront(a);
+      canvas.requestRenderAll(); pushState();
+    });
+    
+    document.getElementById('sendToBack').addEventListener('click', ()=>{
+      const a = canvas.getActiveObject(); if (!a) return;
+      canvas.sendToBack(a);
+      canvas.requestRenderAll(); pushState();
+    });
+    
+    document.getElementById('deleteObj').addEventListener('click', ()=>{
+      const a = canvas.getActiveObject(); if (!a) return;
+      canvas.remove(a); canvas.discardActiveObject(); pushState(); refreshElementsPanel();
+    });
+
+    // History functions
+    document.getElementById('undo').addEventListener('click', ()=>{
+      if (undoStack.length <= 1) return;
+      const cur = undoStack.pop();
+      redoStack.push(cur);
+      const prev = undoStack[undoStack.length-1];
+      applyState(prev);
+    });
+    
+    document.getElementById('redo').addEventListener('click', ()=>{
+      if (!redoStack.length) return;
+      const s = redoStack.pop();
+      applyState(s);
+      undoStack.push(s);
+    });
+
+    // Save function
+    document.getElementById('btnSave').addEventListener('click', async ()=>{
+      const payload = {
+        template_id: templateId,
+        design_json: canvas.toJSON(['objectId'])
+      };
+      const resp = await fetch('/save', {
+        method:'POST', 
+        headers:{'Content-Type':'application/json'}, 
+        body: JSON.stringify(payload)
+      });
+      const j = await resp.json();
+      if (j.design_id) alert('Design saved successfully! ID: ' + j.design_id);
+    });
+
+    // Export function
+    document.getElementById('btnExport').addEventListener('click', async ()=>{
+      // Use fabric method toDataURL for export (better fidelity)
+      const dataUrl = canvas.toDataURL({ 
+        format: 'png', 
+        multiplier: 2,
+        quality: 1 
+      });
+      
+      // Create download link
+      const a = document.createElement('a');
+      a.href = dataUrl;
+      a.download = `${templateId.replace(/\.[^/.]+$/, "")}_design_export.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    });
+    
+    // Zoom functions
+    document.getElementById('zoomIn').addEventListener('click', () => {
+      if (currentScale < maxScale) {
+        currentScale += scaleStep;
+        updateCanvasZoom();
+      }
+    });
+    
+    document.getElementById('zoomOut').addEventListener('click', () => {
+      if (currentScale > minScale) {
+        currentScale -= scaleStep;
+        updateCanvasZoom();
+      }
+    });
+    
+    document.getElementById('zoomReset').addEventListener('click', () => {
+      currentScale = 1.0;
+      updateCanvasZoom();
+    });
+
+    // initial load
+    setupCanvas(templateWidth, templateHeight);
+    addBackgroundImage();
+
+  </script>
+</body>
+</html>
