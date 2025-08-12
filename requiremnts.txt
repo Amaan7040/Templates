@@ -1,0 +1,5 @@
+fastapi
+uvicorn
+pillow
+jinja2
+pydantic
